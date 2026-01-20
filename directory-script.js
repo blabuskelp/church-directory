@@ -1,51 +1,61 @@
-// Replace this with the CSV URL of your Display sheet
+// Replace with your published Display CSV URL
 const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vReXFZkUzJu7IR9ukhvAXZKCEa0oYUpYZis9g3Lq9RmauoFyCh0Vrco6k2LHAEI4rBhMv-dM6h37iI5/pub?gid=379130877&single=true&output=csv";
 
 const directory = document.getElementById("directory");
 const searchBox = document.getElementById("searchBox");
 let cards = [];
 
+// Robust CSV parser to handle quoted cells and commas inside quotes
+function parseCSV(text) {
+  const lines = text.split(/\r?\n/);
+  return lines.map(line => {
+    const regex = /("([^"]*(?:""[^"]*)*)"|[^,]+)/g;
+    const result = [];
+    let match;
+    while ((match = regex.exec(line)) !== null) {
+      result.push(match[2] ? match[2].replace(/""/g, '"') : match[1]);
+    }
+    return result;
+  });
+}
+
+// Fetch CSV and render directory
 fetch(csvUrl)
   .then(res => res.text())
-  .then(text => {
-    // Skip buffer rows if any, or header row
-    const rows = text.split("\n").slice(1);
+  .then(csvText => {
+    const rows = parseCSV(csvText).slice(1); // skip header row
 
-    rows.forEach(row => {
-      if (!row.trim()) return;
-
-      const cols = row.split(","); // assumes CSV columns: B-I
-      if (!cols[0]) return; // skip empty rows
+    rows.forEach(cols => {
+      if (!cols[0]) return; // skip empty last name
 
       // ----- Last Name -----
-      const lastName = cols[0].replace(/^"|"$/g, "").trim();
+      const lastName = cols[0].trim();
 
       // ----- Parents -----
-      const parent1 = cols[1] ? cols[1].replace(/^"|"$/g, "").trim() : "";
-      const parent2 = cols[2] ? cols[2].replace(/^"|"$/g, "").trim() : "";
+      const parent1 = cols[1] ? cols[1].trim() : "";
+      const parent2 = cols[2] ? cols[2].trim() : "";
       const parents = [parent1, parent2].filter(n => n !== "");
 
       // ----- Children -----
-      const childrenStr = cols[3] ? cols[3].replace(/^"|"$/g, "").trim() : "";
+      const childrenStr = cols[3] ? cols[3].trim() : "";
       const children = childrenStr ? childrenStr.split(",").map(n => n.trim()) : [];
 
       // ----- Photo URL -----
-      const photoUrlRaw = cols[4] ? cols[4].replace(/^"|"$/g, "").trim() : "";
-      const photoUrl = photoUrlRaw;
+      const photoUrl = cols[4] ? cols[4].trim() : "";
       const placeholderUrl = "https://via.placeholder.com/160x160.png?text=No+Photo";
 
       // ----- Address -----
-      const address = cols[5] ? cols[5].replace(/^"|"$/g, "").trim() : "";
+      const address = cols[5] ? cols[5].trim() : "";
 
       // ----- Phones -----
-      const phonesRaw = cols[6] ? cols[6].replace(/^"|"$/g, "").trim() : "";
+      const phonesRaw = cols[6] ? cols[6].trim() : "";
       const phoneList = phonesRaw ? phonesRaw.split(";").map(p => {
         const parts = p.split(":");
         return parts.length === 2 ? `${parts[0].trim()}: ${parts[1].trim()}` : p.trim();
       }) : [];
 
       // ----- Emails -----
-      const emailsRaw = cols[7] ? cols[7].replace(/^"|"$/g, "").trim() : "";
+      const emailsRaw = cols[7] ? cols[7].trim() : "";
       const emailList = emailsRaw ? emailsRaw.split(";").map(e => {
         const parts = e.split(":");
         return parts.length === 2 ? `${parts[0].trim()}: ${parts[1].trim()}` : e.trim();
@@ -54,6 +64,8 @@ fetch(csvUrl)
       // ----- Create Card -----
       const card = document.createElement("div");
       card.className = "card";
+      card.style.height = "auto"; // flexible height
+      card.style.overflow = "visible";
       card.innerHTML = `
         <img src="${photoUrl}" alt="${lastName}" 
              onerror="this.onerror=null;this.src='${placeholderUrl}'">
@@ -66,7 +78,7 @@ fetch(csvUrl)
       `;
       directory.appendChild(card);
 
-      // ----- Add to Search Index -----
+      // ----- Add to search index -----
       cards.push({
         element: card,
         text: (
@@ -78,16 +90,14 @@ fetch(csvUrl)
           address
         ).toLowerCase()
       });
-
     });
-
   })
   .catch(err => {
-    directory.innerHTML = "<p style='color:red;'>Error loading data. Check CSV URL and publishing.</p>";
+    directory.innerHTML = "<p style='color:red;'>Error loading CSV. Check the URL and publishing settings.</p>";
     console.error(err);
   });
 
-// ----- Search Filter -----
+// ----- Search filter -----
 searchBox.addEventListener("input", function() {
   const query = this.value.toLowerCase();
   cards.forEach(card => {
