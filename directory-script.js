@@ -68,8 +68,11 @@ fetch(csvUrl)
       card.style.height = "auto"; // flexible height
       card.style.overflow = "visible";
       card.innerHTML = `
-        <img src="${photoUrl}" alt="${lastName}" 
-             onerror="this.onerror=null;this.src='${placeholderUrl}'">
+        <div class="img-container">
+  <img src="${photoUrl}" alt="${lastName}" 
+       onerror="this.onerror=null;this.src='${placeholderUrl}'">
+</div>
+
         <h3>${lastName}</h3>
         ${parents.length ? `<p>${parents.join(" & ")}</p>` : ""}
         ${children.length ? `<p>${children.join(", ")}</p>` : ""}
