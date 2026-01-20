@@ -14,34 +14,37 @@ fetch(csvUrl)
       const cols = row.split(",").slice(1); // skip buffer column
       if (!cols[0]) return;
 
-      // ----- Last Name / First Names -----
+      // ----- Last Name -----
       let rawName = cols[0].replace(/^"|"$/g, "").trim();
       if (rawName.toLowerCase().includes("family name")) return;
-
       let lastName = rawName;
-      let firstNames = [];
-      if (rawName.includes(":")) {
-        const parts = rawName.split(":");
-        lastName = parts[0].trim();
-        firstNames = parts[1].split(",").map(n => n.replace(/^"|"$/g, "").trim());
+
+      // ----- Parents & Children -----
+      let parents = [];
+      let children = [];
+      if (cols[1]) { // Parents column
+        parents = cols[1].split(",").map(n => n.replace(/^"|"$/g, "").trim());
+      }
+      if (cols[2]) { // Children column
+        children = cols[2].split(",").map(n => n.replace(/^"|"$/g, "").trim());
       }
 
       // ----- Photo URL -----
-      let photoUrl = cols[1] ? cols[1].replace(/^"|"$/g, "").trim() : "";
+      let photoUrl = cols[3] ? cols[3].replace(/^"|"$/g, "").trim() : "";
       const placeholderUrl = "https://via.placeholder.com/160x160.png?text=No+Photo";
 
       // ----- Address -----
-      const address = cols[2] ? cols[2].replace(/^"|"$/g, "").trim() : "";
+      const address = cols[4] ? cols[4].replace(/^"|"$/g, "").trim() : "";
 
       // ----- Phones -----
-      const phoneCell = cols[3] ? cols[3].replace(/^"|"$/g, "").trim() : "";
+      const phoneCell = cols[5] ? cols[5].replace(/^"|"$/g, "").trim() : "";
       const phoneList = phoneCell ? phoneCell.split(";").map(p => {
         const parts = p.split(":");
         return parts.length === 2 ? `${parts[0].trim()}: ${parts[1].trim()}` : p.trim();
       }) : [];
 
       // ----- Emails -----
-      const emailCell = cols[4] ? cols[4].replace(/^"|"$/g, "").trim() : "";
+      const emailCell = cols[6] ? cols[6].replace(/^"|"$/g, "").trim() : "";
       const emailList = emailCell ? emailCell.split(";").map(e => {
         const parts = e.split(":");
         return parts.length === 2 ? `${parts[0].trim()}: ${parts[1].trim()}` : e.trim();
@@ -51,9 +54,11 @@ fetch(csvUrl)
       const card = document.createElement("div");
       card.className = "card";
       card.innerHTML = `
-        <img src="${photoUrl}" alt="${lastName}" onerror="this.onerror=null;this.src='${placeholderUrl}'">
+        <img src="${photoUrl}" alt="${lastName}" 
+             onerror="this.onerror=null;this.src='${placeholderUrl}'">
         <h3>${lastName}</h3>
-        <p>${firstNames.join(", ")}</p>
+        ${parents.length ? `<p>${parents.join(" & ")}</p>` : ""}
+        ${children.length ? `<p>${children.join(", ")}</p>` : ""}
         ${address ? `<p>${address}</p>` : ""}
         ${phoneList.length ? `<p>${phoneList.join("<br>")}</p>` : ""}
         ${emailList.length ? `<p>${emailList.join("<br>")}</p>` : ""}
@@ -63,7 +68,14 @@ fetch(csvUrl)
       // ----- Add to Search Index -----
       cards.push({
         element: card,
-        text: (lastName + " " + firstNames.join(" ") + " " + phoneList.join(" ") + " " + emailList.join(" ") + " " + address).toLowerCase()
+        text: (
+          lastName + " " +
+          parents.join(" ") + " " +
+          children.join(" ") + " " +
+          phoneList.join(" ") + " " +
+          emailList.join(" ") + " " +
+          address
+        ).toLowerCase()
       });
 
     });
@@ -73,6 +85,7 @@ fetch(csvUrl)
     console.error(err);
   });
 
+// ----- Search Filter -----
 searchBox.addEventListener("input", function() {
   const query = this.value.toLowerCase();
   cards.forEach(card => {
