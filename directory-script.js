@@ -26,7 +26,8 @@ fetch(csvUrl)
     const rows = parseCSV(csvText).slice(1); // skip header row
 
     rows.forEach(cols => {
-      if (!cols[0]) return; // skip empty last name
+  // Only process rows where the first column (Last Name) is not empty AND is not the header
+  if (!cols[0] || cols[0].toLowerCase().includes("last name")) return;
 
       // ----- Last Name -----
       const lastName = cols[0].trim();
