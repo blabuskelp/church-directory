@@ -1,4 +1,6 @@
-const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vReXFZkUzJu7IR9ukhvAXZKCEa0oYUpYZis9g3Lq9RmauoFyCh0Vrco6k2LHAEI4rBhMv-dM6h37iI5/pub?gid=379130877&single=true&output=csv"; // Replace with your published Google Sheet CSV
+// Replace this with the CSV URL of your Display sheet
+const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vReXFZkUzJu7IR9ukhvAXZKCEa0oYUpYZis9g3Lq9RmauoFyCh0Vrco6k2LHAEI4rBhMv-dM6h37iI5/pub?gid=379130877&single=true&output=csv";
+
 const directory = document.getElementById("directory");
 const searchBox = document.getElementById("searchBox");
 let cards = [];
@@ -6,41 +8,45 @@ let cards = [];
 fetch(csvUrl)
   .then(res => res.text())
   .then(text => {
-    const rows = text.split("\n").slice(2); // skip buffer + header
+    // Skip buffer rows if any, or header row
+    const rows = text.split("\n").slice(1);
 
     rows.forEach(row => {
       if (!row.trim()) return;
 
-      const cols = row.split(",").slice(1); // skip buffer column
-      if (!cols[0]) return;
+      const cols = row.split(","); // assumes CSV columns: B-I
+      if (!cols[0]) return; // skip empty rows
 
       // ----- Last Name -----
-      let lastName = cols[0].replace(/^"|"$/g, "").trim();
-      if (lastName.toLowerCase().includes("family name")) return;
+      const lastName = cols[0].replace(/^"|"$/g, "").trim();
 
       // ----- Parents -----
-      let parents = cols[1] ? cols[1].split(",").map(n => n.replace(/^"|"$/g, "").trim()) : [];
+      const parent1 = cols[1] ? cols[1].replace(/^"|"$/g, "").trim() : "";
+      const parent2 = cols[2] ? cols[2].replace(/^"|"$/g, "").trim() : "";
+      const parents = [parent1, parent2].filter(n => n !== "");
 
       // ----- Children -----
-      let children = cols[2] ? cols[2].split(",").map(n => n.replace(/^"|"$/g, "").trim()) : [];
+      const childrenStr = cols[3] ? cols[3].replace(/^"|"$/g, "").trim() : "";
+      const children = childrenStr ? childrenStr.split(",").map(n => n.trim()) : [];
 
       // ----- Photo URL -----
-      let photoUrl = cols[3] ? cols[3].replace(/^"|"$/g, "").trim() : "";
+      const photoUrlRaw = cols[4] ? cols[4].replace(/^"|"$/g, "").trim() : "";
+      const photoUrl = photoUrlRaw;
       const placeholderUrl = "https://via.placeholder.com/160x160.png?text=No+Photo";
 
       // ----- Address -----
-      const address = cols[4] ? cols[4].replace(/^"|"$/g, "").trim() : "";
+      const address = cols[5] ? cols[5].replace(/^"|"$/g, "").trim() : "";
 
       // ----- Phones -----
-      const phoneCell = cols[5] ? cols[5].replace(/^"|"$/g, "").trim() : "";
-      const phoneList = phoneCell ? phoneCell.split(";").map(p => {
+      const phonesRaw = cols[6] ? cols[6].replace(/^"|"$/g, "").trim() : "";
+      const phoneList = phonesRaw ? phonesRaw.split(";").map(p => {
         const parts = p.split(":");
         return parts.length === 2 ? `${parts[0].trim()}: ${parts[1].trim()}` : p.trim();
       }) : [];
 
       // ----- Emails -----
-      const emailCell = cols[6] ? cols[6].replace(/^"|"$/g, "").trim() : "";
-      const emailList = emailCell ? emailCell.split(";").map(e => {
+      const emailsRaw = cols[7] ? cols[7].replace(/^"|"$/g, "").trim() : "";
+      const emailList = emailsRaw ? emailsRaw.split(";").map(e => {
         const parts = e.split(":");
         return parts.length === 2 ? `${parts[0].trim()}: ${parts[1].trim()}` : e.trim();
       }) : [];
@@ -74,6 +80,7 @@ fetch(csvUrl)
       });
 
     });
+
   })
   .catch(err => {
     directory.innerHTML = "<p style='color:red;'>Error loading data. Check CSV URL and publishing.</p>";
