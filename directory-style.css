@@ -23,14 +23,26 @@ body {
   padding: 15px;
   background: #fff;
   text-align: center;
+  height: auto;          /* allow card height to adjust to content */
+  overflow: visible;     /* prevent cutting off text */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
-.card img {
-  width: 100%;
-  height: 160px;
-  object-fit: cover;
-  border-radius: 6px;
+.card .img-container {
+  width: 160px;          /* fixed width */
+  height: 160px;         /* fixed height */
+  overflow: hidden;      /* crop excess image */
   margin-bottom: 10px;
+  border-radius: 6px;
+}
+
+.card .img-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;     /* fill container and crop if needed */
+  display: block;
 }
 
 .card h3 {
@@ -42,4 +54,6 @@ body {
   margin: 2px 0;
   color: #555;
   font-size: 14px;
+  word-wrap: break-word; /* prevent overflow on long lines */
+  overflow-wrap: break-word;
 }
