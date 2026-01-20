@@ -15,19 +15,14 @@ fetch(csvUrl)
       if (!cols[0]) return;
 
       // ----- Last Name -----
-      let rawName = cols[0].replace(/^"|"$/g, "").trim();
-      if (rawName.toLowerCase().includes("family name")) return;
-      let lastName = rawName;
+      let lastName = cols[0].replace(/^"|"$/g, "").trim();
+      if (lastName.toLowerCase().includes("family name")) return;
 
-      // ----- Parents & Children -----
-      let parents = [];
-      let children = [];
-      if (cols[1]) { // Parents column
-        parents = cols[1].split(",").map(n => n.replace(/^"|"$/g, "").trim());
-      }
-      if (cols[2]) { // Children column
-        children = cols[2].split(",").map(n => n.replace(/^"|"$/g, "").trim());
-      }
+      // ----- Parents -----
+      let parents = cols[1] ? cols[1].split(",").map(n => n.replace(/^"|"$/g, "").trim()) : [];
+
+      // ----- Children -----
+      let children = cols[2] ? cols[2].split(",").map(n => n.replace(/^"|"$/g, "").trim()) : [];
 
       // ----- Photo URL -----
       let photoUrl = cols[3] ? cols[3].replace(/^"|"$/g, "").trim() : "";
