@@ -1,58 +1,70 @@
-// ----- Sample test data -----
-const families = [
+const directory = document.getElementById("directory");
+
+// TEMPORARY test data (hard-coded)
+const testFamilies = [
   {
-    name: "Smith Family",
-    members: "John & Mary",
-    image: "https://via.placeholder.com/300x200?text=Family+Photo"
+    familyName: "Smith",
+    parents: "John & Jane",
+    children: "Thomas, Lucy",
+    address: "123 Main St.",
+    phones: ["John: 214-555-1234", "Jane: 214-555-5678"],
+    emails: ["smith@gmail.com"],
+    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Placeholder_view_vector.svg/512px-Placeholder_view_vector.svg.png"
   },
   {
-    name: "Garcia Family",
-    members: "Luis, Ana, Sofia",
-    image: "https://via.placeholder.com/300x200?text=Family+Photo"
-  },
-  {
-    name: "Johnson Family",
-    members: "Mark & Emily",
-    image: "https://via.placeholder.com/300x200?text=Family+Photo"
+    familyName: "Garcia",
+    parents: "Miguel & Ana",
+    children: "",
+    address: "456 Oak Ave.",
+    phones: ["Miguel: 214-555-0000"],
+    emails: ["garcia@email.com"],
+    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Placeholder_view_vector.svg/512px-Placeholder_view_vector.svg.png"
   }
 ];
 
-// ----- Render function -----
-function renderDirectory(list) {
-  const directory = document.getElementById("directory");
-  directory.innerHTML = "";
+// Render cards
+testFamilies.forEach(family => {
+  const card = document.createElement("div");
+  card.className = "card";
 
-  list.forEach(family => {
-    const card = document.createElement("div");
-    card.style.width = "200px";
-    card.style.border = "1px solid #ccc";
-    card.style.borderRadius = "8px";
-    card.style.padding = "10px";
-    card.style.textAlign = "center";
+  const img = document.createElement("img");
+  img.src = family.image;
+  img.alt = family.familyName;
+  card.appendChild(img);
 
-    card.innerHTML = `
-      <img src="${family.image}" 
-           alt="${family.name}" 
-           style="width:100%; border-radius:5px; margin-bottom:10px;">
-      <strong>${family.name}</strong>
-      <div style="font-size:14px; color:#555;">${family.members}</div>
-    `;
+  const title = document.createElement("h3");
+  title.textContent = family.familyName;
+  card.appendChild(title);
 
-    directory.appendChild(card);
+  if (family.parents) {
+    const parents = document.createElement("p");
+    parents.textContent = family.parents;
+    card.appendChild(parents);
+  }
+
+  if (family.children) {
+    const children = document.createElement("p");
+    children.textContent = family.children;
+    card.appendChild(children);
+  }
+
+  if (family.address) {
+    const address = document.createElement("p");
+    address.textContent = family.address;
+    card.appendChild(address);
+  }
+
+  family.phones.forEach(phone => {
+    const p = document.createElement("p");
+    p.textContent = phone;
+    card.appendChild(p);
   });
-}
 
-// ----- Search logic -----
-document.getElementById("searchBox").addEventListener("input", function () {
-  const query = this.value.toLowerCase();
+  family.emails.forEach(email => {
+    const e = document.createElement("p");
+    e.textContent = email;
+    card.appendChild(e);
+  });
 
-  const filtered = families.filter(f =>
-    f.name.toLowerCase().includes(query) ||
-    f.members.toLowerCase().includes(query)
-  );
-
-  renderDirectory(filtered);
+  directory.appendChild(card);
 });
-
-// ----- Initial load -----
-renderDirectory(families);
